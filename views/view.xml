@@ -1,0 +1,21 @@
+<odoo>
+<data>
+
+   <act_window id='acquirer'
+     name='MpayAcquirer'
+     res_model='payment.acquirer'
+     view_mode='list,form'
+   />
+   
+   <act_window id='transaction'
+     name='MpayTransaction'
+     res_model='payment.transaction'
+     view_mode='list,form'
+   />  
+   
+   <menuitem id='top' name='Mpay' action='acquirer' />
+   <menuitem id='menu1' name='MpayAcquirer' action='acquirer' parent='top' />
+   <menuitem id='menu2' name='MpayTransaction' action='transaction' parent='top' /> 
+
+</data>
+</odoo>
