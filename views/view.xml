@@ -13,9 +13,26 @@
      view_mode='list,form'
    />  
    
+   <act_window id='config_services'
+     name='Config Services'
+     res_model='payment.service'
+     view_mode='list,form'
+   /> 
+   
+   <act_window id='received_transaction'
+     name='Received Transaction'
+     res_model='received.transaction'
+     view_mode='list,form'
+   />       
+   
    <menuitem id='top' name='Mpay' action='acquirer' />
-   <menuitem id='menu1' name='MpayAcquirer' action='acquirer' parent='top' />
-   <menuitem id='menu2' name='MpayTransaction' action='transaction' parent='top' /> 
+   <menuitem id='sidemenu1' name='Transactions' parent='top' />
+   <menuitem id='menu1' name='MpayAcquirer' action='acquirer' parent='sidemenu1' />
+   <menuitem id='menu2' name='MpayTransaction' action='transaction' parent='sidemenu1' />
+   
+   <menuitem id='sidemenu2' name='Configurations' parent='top' />
+   <menuitem id='config1' name='Transactions Details' action='received_transaction' parent='sidemenu2' />
+   <menuitem id='config2' name='Payment Services' action='config_services' parent='sidemenu2' />   
 
 </data>
 </odoo>

@@ -7,7 +7,7 @@
     'company': 'Singo Africa Ltd',
     'website': "singoafrica.com",
     'category': 'eCommerce',
-    'depends': ['base', 'payment', 'website_sale'],
+    'depends': ['base', 'payment', 'website_sale', 'account'],
     'data': [
       'views/view.xml'
     ],
