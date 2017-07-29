@@ -1,0 +1,28 @@
+<odoo>
+<data>
+  <template id="example__page" name="Demo Page" page="True">
+    <t t-call="website.layout">
+      <div class="oe_structure">
+        <div class="container" >
+          <center><h3>Title</h3></center>
+          <p> <t t-esc='hell'/> </p>
+          <t t-if='conf'> <p>Hello the condition is true </p> </t>
+          <ul>
+          <t t-foreach='[4,3,5,30]' t-as='i'>
+            <t t-set='i' t-value='0' />
+            <t t-esc='i*345'/>
+          <li>  <input type='text' name='us' placeholder='username'/> </li>
+
+          </t>
+        </ul>
+          <p>
+            You can add all your content here.<br/>
+            <a href='/here'>Hello</a>
+            <a t-attf-href="/example/detail" class="btn btn-info"> Company detail page </a>
+          </p>
+        </div>
+      </div>
+    </t>
+  </template>
+</data>
+</odoo>

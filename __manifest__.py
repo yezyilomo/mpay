@@ -9,7 +9,8 @@
     'category': 'eCommerce',
     'depends': ['base', 'payment', 'website_sale', 'account'],
     'data': [
-      'views/view.xml'
+      'views/view.xml',
+      'views/exmpl.xml',
     ],
     'installable': True,
     'application': True,
