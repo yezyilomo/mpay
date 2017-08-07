@@ -10,7 +10,7 @@
     'depends': ['base', 'payment', 'website_sale', 'account'],
     'data': [
       'views/view.xml',
-      'views/exmpl.xml',
+      'views/templates.xml',
     ],
     'installable': True,
     'application': True,

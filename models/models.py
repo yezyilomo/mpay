@@ -1,22 +1,17 @@
 from odoo import models, fields, api
 
 class MpayAcquirer(models.Model):
-    _inherit = 'payment.acquirer'
+     _inherit = 'payment.acquirer'
+     provider = fields.Selection(selection_add=[('mpay', 'Mpay')])
 
-    @api.model
-    def _get_providers(self):
-      providers = super(MpayAcquirer, self)._get_providers()
-      providers.append(['Mpay', 'MPay'])
-      return providers
-
-    Mpay_account_id = fields.Char('Account Id')
-    Mpay_access_tocken = fields.Char('Access Token')
+     def _get_feature_support(self):
+        res = super(MpayAcquirer, self)._get_feature_support()
+        res['tokenize'].append('mpay')
+        return res
 
 
 class MpayTransaction(models.Model):
     _inherit = 'payment.transaction'
-    Mpay_checkout_id = fields.Char('Mpay Checkout Id')
-    acquirer_name = fields.Selection(related='acquirer_id.provider')
 
 
 class PaymentService(models.Model):

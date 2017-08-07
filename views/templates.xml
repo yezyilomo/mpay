@@ -1,0 +1,37 @@
+<odoo>
+<data>
+
+  <template id="transaction_id_fill" name="Confirmation" page="True">
+    <t t-call="website.layout">
+      <div class="oe_struct">
+        <div class="container" >
+          <br/>  <br/>  <br/>
+          <center>Do your payment through number 1455 and enter transaction Id below to confirm your payment. <br/>
+                  Make sure you have paid <t t-esc="amount" /> <t t-esc="currency" />
+          </center>
+
+          <center>
+          <form action="validate" method="post" >
+            <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+            <input type="password" name="transaction_id" />
+            <input type="hidden" name="amount" t-att-value="amount" />
+            <input type="hidden" name="currency" t-att-value="currency" />
+            <button type="submit" width="100px" t-att-class="submit_class">
+              Validate
+            </button>
+          </form>
+        </center>
+        </div>
+      </div>
+    </t>
+  </template>
+
+  <template id="example__page" name="Demo Page" page="True">
+    <t t-call="website.layout">
+      <p> Demo Qweb Page </p>
+    </t>
+  </template>
+
+
+</data>
+</odoo>
