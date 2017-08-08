@@ -1,27 +1,37 @@
 <odoo>
 <data>
 
-  <template id="transaction_id_fill" name="Confirmation" page="True">
+  <template id="transaction_id_fill" name="Confirmation" page="True" >
     <t t-call="website.layout">
-      <div class="oe_struct">
-        <div class="container" >
+      <div class="oe_struct" style="background-color: #f8f8f8; height: 44vh;">
+        <link href="https://fonts.googleapis.com/css?family=Comfortaa" rel="stylesheet" />
+
+        <t t-if="error == 'none'" >   <br/>  <br/>  <br/>
+          <center style="font-size: 1.2em; font-family: 'Comfortaa', cursive; color: #337ab7;"> Thank you, You have done your payment successfully, Wait for shipment of your products
+          </center> </t>
+        <t t-if="error != 'none'">
+
+        <div class="container" style="font-size: 1.2em; font-family: 'Comfortaa', cursive; color: #337ab7;" >
           <br/>  <br/>  <br/>
-          <center>Do your payment through number 1455 and enter transaction Id below to confirm your payment. <br/>
+          <center>Do your payment through number 1455 and then enter the transaction Id below to confirm your payment. <br/>
                   Make sure you have paid <t t-esc="amount" /> <t t-esc="currency" />
           </center>
 
           <center>
-          <form action="validate" method="post" >
+          <form action="validate" method="post" style="margin-top: 5px;" >
             <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
-            <input type="password" name="transaction_id" />
-            <input type="hidden" name="amount" t-att-value="amount" />
+            <input type="text" name="transaction_id" class="form-control" style="width: 40%; text-align: center;" />
+            <input type="hidden" name="amount" t-att-value="amount"  />
             <input type="hidden" name="currency" t-att-value="currency" />
-            <button type="submit" width="100px" t-att-class="submit_class">
-              Validate
+           <p style="color: red; margin-top: 5px;">  <t t-esc="error" /> </p>
+            <button  class="btn btn-primary" type="submit">
+                    <span t-if="not submit_txt">Confirm <span class="fa fa-long-arrow-right"></span></span>
+                    <span t-if="submit_txt"><t t-esc="submit_txt"/></span>
             </button>
           </form>
         </center>
         </div>
+      </t>
       </div>
     </t>
   </template>
@@ -31,7 +41,6 @@
       <p> Demo Qweb Page </p>
     </t>
   </template>
-
 
 </data>
 </odoo>
