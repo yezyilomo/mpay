@@ -1,6 +1,26 @@
 <odoo>
 <data>
 
+  <template id="demo_sms" name="Demo SMS" page="True">
+    <t t-call="website.layout">
+      <center style=" background-color: #f8f8f8; height: 44vh;">
+        <link href="https://fonts.googleapis.com/css?family=Comfortaa" rel="stylesheet" />
+        <br/> <br/> <br/>
+        <p style="font-size: 1.2em; font-family: 'Comfortaa', cursive; color: #337ab7; margin-top: 0px;" >
+          This is a demo for testing SMS synchronisation, type transaction text and try to send for testing SMS sync feature!..
+        </p>
+      <form action="get_transaction_sms" method="post"  >
+        <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+        <input type="text" name="sms" class="form-control" style="width: 40%; text-align: center;" />
+        <button  class="btn btn-primary" type="submit" style="margin-top: 5px;" >
+                <span t-if="not submit_txt">Send <span class="fa fa-long-arrow-right"></span></span>
+                <span t-if="submit_txt"><t t-esc="submit_txt"/></span>
+        </button>
+      </form>
+    </center>
+    </t>
+  </template>
+
   <template id="transaction_id_fill" name="Confirmation" page="True" >
     <t t-call="website.layout">
       <div class="oe_struct" style="background-color: #f8f8f8; height: 44vh;">

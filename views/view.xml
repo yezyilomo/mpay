@@ -1,29 +1,60 @@
 <odoo>
 <data>
 
-   <act_window id='acquirer'
-     name='MpayAcquirer'
-     res_model='payment.acquirer'
-     view_mode='list,form'
-   />
+   <record id="acquirer" model="ir.actions.act_window">
+    <field name='name'>Mpay Acquirer</field>
+    <field name='res_model'>payment.acquirer</field>
+    <field name='view_mode'>tree,form</field>
+    <field name='view_type'>form</field>
+    </record>
 
-   <act_window id='transaction'
-     name='MpayTransaction'
-     res_model='payment.transaction'
-     view_mode='list,form'
-   />
+   <record id="transaction" model="ir.actions.act_window">
+    <field name='name'>Mpay Transaction</field>
+    <field name='res_model'>payment.transaction</field>
+    <field name='view_mode'>tree,form</field>
+    <field name='view_type'>form</field>
+    </record>
 
-   <act_window id='config_services'
-     name='Config Services'
-     res_model='payment.service'
-     view_mode='list,form'
-   />
+   <record id="config_services" model="ir.actions.act_window">
+    <field name='name'>Config Services</field>
+    <field name='res_model'>payment.service</field>
+    <field name='view_mode'>tree,form</field>
+    <field name='view_type'>form</field>
+    </record>
 
-   <act_window id='received_transaction'
-     name='Received Transaction'
-     res_model='received.transaction'
-     view_mode='list,form'
-   />
+    <record id="configure_service" model="ir.ui.view">
+             <field name="name">Config Service</field>
+             <field name="model">payment.service</field>
+             <field name="arch" type="xml">
+                 <tree string="view">
+                     <field name="service_provider"/>
+                     <field name="service_number"/>
+                 </tree>
+             </field>
+    </record>
+
+   <record id="received_transaction" model="ir.actions.act_window">
+    <field name='name'>Received Transaction</field>
+    <field name='res_model'>received.transaction</field>
+    <field name='view_mode'>tree,form</field>
+    <field name='view_type'>form</field>
+    </record>
+
+   <record id="test" model="ir.ui.view">
+            <field name="name">ac</field>
+            <field name="model">received.transaction</field>
+            <field name="arch" type="xml">
+                <tree string="vw">
+                    <field name="sender_name"/>
+                    <field name="sender_phone"/>
+                    <field name="transaction_id"/>
+                    <field name="transaction_status"/>
+                    <field name="transaction_currency"/>
+                    <field name="received_amount"/>
+                    <field name="service_provider"/>
+                </tree>
+            </field>
+   </record>
 
    <menuitem id='top' name='Mpay' action='acquirer' />
    <menuitem id='sidemenu1' name='Transactions' parent='top' />

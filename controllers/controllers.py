@@ -3,21 +3,43 @@ from odoo.http import request
 
 class Controller(http.Controller):
 
-#    Just for Demostration
-#    @http.route('/auth_usr', type='http', auth='public', website=True, )
-#    def render_example_page(self):
-#        return http.request.render("Mpay.example__page", {})
+#####Just for Demostration #################################################
+    @http.route('/auth_usr', type='http', auth='public', website=True, )   #
+    def render_demo_page(self):                                            #
+        return http.request.render("Mpay.demo_sms", {})                    #
+####Just for Demostration ##################################################
 
+    def tokenize(self,string):
+       help=""
+       st=[]
+       count=0
+
+       for i in string:
+         count=count+1
+         if i==" " or count==len(string):
+            print (count)
+            st.append(help)
+            help=""
+            continue;
+         else :
+            help=help+i;
+       return st
 
     @http.route('/get_transaction_sms', type='http', auth='public', website=True, methods=['POST'])
     def post_method(self, **sms):
-        #Here we have to extract important information from SMS sent and store to received.transaction model
-        data=request.env['received.transaction'].sudo().search([],limit=10)
-        return "Info Stored"
+        #Here we have to extract important information from SMS sent and store to "received.transaction" model
+        transaction_sms=sms['sms']
+        tokenized_sms=self.tokenize(transaction_sms)
+        tokenized_sms[3][0:3]
+        data=request.env['received.transaction'].sudo().create({'sender_name': str(tokenized_sms[6]+tokenized_sms[7]), 'sender_phone': tokenized_sms[8], 'transaction_id': tokenized_sms[0], 'transaction_status': 'pending', 'transaction_currency': tokenized_sms[3][0:3], 'received_amount': float(tokenized_sms[3][3:].replace(",", "")), 'service_provider': 'Vodacom'}  )
+        return "Information Saved"
 
     @http.route('/paynow', type='http', auth='public', website=True, methods=['POST'])
     def pay_now(self, **kw):
         data=kw
+        #print("*******")
+        #print(kw)
+        #print("*******")
         error=""
         return request.render("Mpay.transaction_id_fill",{'amount': data['amount'], 'currency': data['currency'],'error': error})
 
