@@ -1,6 +1,6 @@
 # Mpay:
 
-![Alt text]("https://github.com/yezyilomo/Mpay/blob/master/mpay_logo.png")
+![Alt text](https://github.com/yezyilomo/Mpay/blob/master/mpay_logo.png?raw=true "Optional Title")
 
 
  Odoo application for online payment through mobile SMS based services in eCommerce site.
