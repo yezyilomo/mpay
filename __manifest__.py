@@ -11,7 +11,9 @@
     'data': [
       'views/view.xml',
       'views/templates.xml',
+      'data/payment_acquirer_data.xml',
     ],
     'installable': True,
+    'auto_install': True,
     'application': True,
 }

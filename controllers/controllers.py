@@ -1,7 +1,22 @@
 from odoo import http, api
 from odoo.http import request
+import logging
+import pprint
+import werkzeug
 
-class Controller(http.Controller):
+_logger = logging.getLogger(__name__)
+
+class OgoneController(http.Controller):
+    _accept_url = '/payment/mpay/feedback'
+
+    @http.route([
+        '/payment/mpay/feedback',
+    ], type='http', auth='none', csrf=False)
+    def mpay_form_feedback(self, **post):
+        _logger.info('Beginning form_feedback with post data %s', pprint.pformat(post))  # debug
+        print(post)
+        request.env['payment.transaction'].sudo().form_feedback(post, 'transfer')
+        return werkzeug.utils.redirect(post.pop('return_url', '/'))
 
 #####Just for Demostration #################################################
     @http.route('/auth_usr', type='http', auth='public', website=True, )   #
@@ -9,61 +24,78 @@ class Controller(http.Controller):
         return http.request.render("Mpay.demo_sms", {})                    #
 ####Just for Demostration ##################################################
 
-    def tokenize(self,string):
-       help=""
-       st=[]
-       count=0
+    def extract_data(self,template,message):
+       tokenized_message=message.split()
+       tokenized_template=template.split()
+       data={}
+       try:
+            if( len(tokenized_message) != len(tokenized_template) ):
+             for i in range(0,len(tokenized_message)):
+               if(tokenized_message[i] != tokenized_template[i]) and tokenized_template[i][0:1] == "$" and len(tokenized_template)!= (i+1):
+                  data.update( {tokenized_template[i][1:] : tokenized_message[i]} )
 
-       for i in string:
-         count=count+1
-         if i==" " or count==len(string):
-            print (count)
-            st.append(help)
-            help=""
-            continue;
-         else :
-            help=help+i;
-       return st
+               elif (tokenized_message[i] != tokenized_template[i]) and tokenized_template[i][0:1] != "$" and len(tokenized_template)!= (i+1):
+                  while True:
+                    if (tokenized_message[i] != tokenized_template[i]) and tokenized_template[i][0:1] != "$":
+                       data[tokenized_template[i-1][1:]]=data[tokenized_template[i-1][1:]]+" "+tokenized_message[i]
+                       del tokenized_message[i]
+                    else:
+                       break;
+               elif (tokenized_message[i] != tokenized_template[i]) and tokenized_template[i][0:1] == "$" and len(tokenized_template)== (i+1):
+                  help_message=""
+                  iterator=iter(tokenized_message[i:])
+                  for p in iterator:
+                    test=next(iterator,True)
+                    if test==True:
+                       help_message=help_message+p+""
+                    else:
+                       help_message=help_message+p+" "
+                  data.update({tokenized_template[i][1:]:help_message})
+                  break;
+             return data
 
-    @http.route('/get_transaction_sms', type='http', auth='public', website=True, methods=['POST'])
+            else:
+              for i in range(0,len(tokenized_message)):
+                 if(tokenized_message[i] != tokenized_template[i]) and tokenized_template[i][0:1] == "$" :
+                    data.update( {tokenized_template[i][1:] : tokenized_message[i]} )
+
+              return data
+       except Exception as e:
+         print("Error 001: Invalid formating of template\nCheck if your message corresponds with the template\n")
+
+
+    @http.route('/get_transaction_sms', type='http', auth='public', website=True, methods=['POST'], csrf=False)
     def post_method(self, **sms):
         #Here we have to extract important information from SMS sent and store to "received.transaction" model
-        transaction_sms=sms['sms']
-        tokenized_sms=self.tokenize(transaction_sms)
-        tokenized_sms[3][0:3]
-        data=request.env['received.transaction'].sudo().create({'sender_name': str(tokenized_sms[6]+tokenized_sms[7]), 'sender_phone': tokenized_sms[8], 'transaction_id': tokenized_sms[0], 'transaction_status': 'pending', 'transaction_currency': tokenized_sms[3][0:3], 'received_amount': float(tokenized_sms[3][3:].replace(",", "")), 'service_provider': 'Vodacom'}  )
-        return "Information Saved"
+        if sms['secret'] !='ilomoyezy':
+            return "Error 404."
 
-    @http.route('/paynow', type='http', auth='public', website=True, methods=['POST'])
-    def pay_now(self, **kw):
-        data=kw
-        #print("*******")
-        #print(kw)
-        #print("*******")
-        error=""
-        return request.render("Mpay.transaction_id_fill",{'amount': data['amount'], 'currency': data['currency'],'error': error})
+        received_sms=sms['message']
+        get_record=request.env['payment.service'].sudo().search([("service_provider","=","Vodacom")]);
+        if get_record.exists():
+           template=get_record.template_sms;
+        else:
+            template="$transaction_id Imethibitishwa umepokea $received_amount kutoka kwa $name Tarehe $date saa $time kwa kumbukumbu namba $reference"
 
-    @http.route('/validate', type='http', auth='public', website=True, methods=['POST','GET'])
-    def validate_payment(self, **kw):
-        data=kw;
-        transaction=request.env['received.transaction'].sudo().search([('transaction_id','=',kw['transaction_id'] ) ],limit=1)
-        if not transaction.exists() :  # if invalid transaction_id is provided
-            #error="No transaction"
-            error="Invalid transaction Id, try again!."
-            return request.render("Mpay.transaction_id_fill",{'amount': data['amount'], 'currency': data['currency'], 'error': error})
+        try :
+          transaction_sms=self.extract_data(template,received_sms)
+          data=request.env['received.transaction'].sudo().create({'reference': transaction_sms['reference'],'sender_name': transaction_sms['name'], 'sender_phone': transaction_sms['name'], 'transaction_id': transaction_sms['transaction_id'], 'transaction_status': 'pending', 'transaction_currency': transaction_sms['received_amount'][0:3], 'received_amount': float(transaction_sms['received_amount'][3:].replace(",", "")), 'service_provider': sms['from'] }  )
+          trs=request.env['payment.transaction'].sudo().search( [('reference','=',transaction_sms['reference'] )] )
+          print(len(transaction_sms['reference']));
+          print(received_sms)
+          if trs.exists(): ##########If the order exists
+              if trs.state!='done' and data.transaction_status!='done' and trs.amount <= data.received_amount: ##If paid amount is equal or greater than expected amount
+                 trs.write({'state':'done'})
+                 data.write({'transaction_status': 'done'})
+                 print('\033[1m'+'\033[92m'+"\nMpay payment for order # "+transaction_sms['reference']+ " confirmed\n"+'\033[0m')
+              elif  trs.state!='done' and data.transaction_status!='done' and trs.amount > data.received_amount: ##If paid amount is less than expected amount
+                data.write({'transaction_status': 'incomplete'})
+                print('\033[1m'+'\033[91m'+"\nIncomplete payment.\n"+'\033[0m')
+              else :
+               print('\033[1m'+'\033[1m'+'\033[1m'+'\033[91m'+"\nOrder "+transaction_sms['reference']+ " has already been processed.\n"+'\033[0m')#Order with the same  order number exist
+          else:  ###########If the order doesn't exist
+            print('\033[1m'+'\033[91m'+"\nOrder "+transaction_sms['reference']+" does not exist.\n" +'\033[0m')
 
-        if transaction.transaction_status == 'done' :  # if provided transaction_id has already been used to confirm transaction
-           #error="Transaction has already been done"
-           error="Invalid transaction Id, try again!."
-           return request.render("Mpay.transaction_id_fill",{'amount': data['amount'], 'currency': data['currency'], 'error': error})
-
-        if transaction.transaction_status == 'pending' : # if transaction is in pending state not yet confirmed
-
-           if float(transaction.received_amount) != float(kw['amount']) : # if paid amount is not equal to required amount
-              transaction.transaction_status='incomplete'
-              error= "You have paid insufficient money"
-              return request.render("Mpay.transaction_id_fill",{'amount': data['amount'], 'currency': data['currency'], 'error': error})
-
-           transaction.transaction_status='done'  #Everything is right now we confirm payment
-           error="none"
-           return request.render("Mpay.transaction_id_fill",{'amount': data['amount'], 'currency': data['currency'], 'error': error})
+        except Exception as e:
+            print(e)
+            print('\033[1m'+'\033[91m'+"\nOooop!, it seems like your SMS does not involve payment transaction!.\n"+'\033[0m')

@@ -29,6 +29,7 @@
                  <tree string="view">
                      <field name="service_provider"/>
                      <field name="service_number"/>
+                     <field name="template_sms"/>
                  </tree>
              </field>
     </record>
@@ -45,6 +46,7 @@
             <field name="model">received.transaction</field>
             <field name="arch" type="xml">
                 <tree string="vw">
+                   <field name="reference"/>
                     <field name="sender_name"/>
                     <field name="sender_phone"/>
                     <field name="transaction_id"/>
