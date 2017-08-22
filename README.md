@@ -26,7 +26,7 @@
 
   -Client place an order for that product
 
-  -Client obtain a number for doing payment from the ecommerce site after placing an order as publishe by his saler
+  -Client obtain order number(reference number) for doing payment from the ecommerce site after placing an order as publishe by his saler
 
   -Client go to pay for the product he/she ordered through his/her mobile phone and specific services provider(eg Vodacom, Tigo, etc)
 
@@ -36,6 +36,6 @@
 
   -Now Odoo system receive transaction SMS, authenticate the sender, extract all necessary informations and record them to appropriate fields in a Database ready for confirmation
 
-  -To finish the payment process the client must enter the transaction Id/number he/she received through his mobile phone during transaction in a confirmation field on ecommerce site
+  -The system will confirm payment by checking if the reference number sent by client match with the order name, then the system will check if the amount paid by the client match with the order price
 
-  -When the payment is confirmed shipment is issued
+  -When the payment is confirmed under circumstance that everything is right shipment is issued
