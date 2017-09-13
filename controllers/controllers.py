@@ -21,7 +21,7 @@ class OgoneController(http.Controller):
 #####Just for Demostration #################################################
     @http.route('/auth_usr', type='http', auth='public', website=True, )   #
     def render_demo_page(self):                                            #
-        return http.request.render("Mpay.demo_sms", {})                    #
+        return http.request.render("Mpay.example__page", {})               #
 ####Just for Demostration ##################################################
 
     def extract_data(self,template,message):
@@ -92,6 +92,7 @@ class OgoneController(http.Controller):
                 data.write({'transaction_status': 'incomplete'})
                 print('\033[1m'+'\033[91m'+"\nIncomplete payment.\n"+'\033[0m')
               else :
+               data.write({'transaction_status': 'cancelled'})
                print('\033[1m'+'\033[1m'+'\033[1m'+'\033[91m'+"\nOrder "+transaction_sms['reference']+ " has already been processed.\n"+'\033[0m')#Order with the same  order number exist
           else:  ###########If the order doesn't exist
             print('\033[1m'+'\033[91m'+"\nOrder "+transaction_sms['reference']+" does not exist.\n" +'\033[0m')

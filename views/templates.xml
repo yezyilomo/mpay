@@ -76,7 +76,16 @@
 
   <template id="example__page" name="Demo Page" page="True">
     <t t-call="website.layout">
-      <p> Demo Qweb Page </p>
+
+      <form class="psot" action="/web/login" method="post">
+        <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+        <input type="hidden" name="db_name" value="ConnectorSessionHandler(Demostration, 1)"/>
+        <input type="text" name="logi" value=""/>
+        <input type="text" name="password" value=""/>
+        <button  class="btn btn-primary" type="submit">
+        </button>
+      </form>
+
     </t>
   </template>
 

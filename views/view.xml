@@ -60,11 +60,11 @@
 
    <menuitem id='top' name='Mpay' action='acquirer' />
    <menuitem id='sidemenu1' name='Transactions' parent='top' />
-   <menuitem id='menu1' name='MpayAcquirer' action='acquirer' parent='sidemenu1' />
+   <menuitem id='menu1' name='MpayAcquirer' action='Mpay.acquirer' parent='sidemenu2' />
    <menuitem id='menu2' name='MpayTransaction' action='transaction' parent='sidemenu1' />
 
    <menuitem id='sidemenu2' name='Configurations' parent='top' />
-   <menuitem id='config1' name='Transactions Details' action='received_transaction' parent='sidemenu2' />
+   <menuitem id='config1' name='Received Transactions' action='received_transaction' parent='sidemenu1' />
    <menuitem id='config2' name='Payment Services' action='config_services' parent='sidemenu2' />
 
 </data>

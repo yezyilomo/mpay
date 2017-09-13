@@ -43,8 +43,8 @@ class MpayAcquirer(models.Model):
         <span > <img src="http://www.ocode.or.tz/wp-content/uploads/2014/02/tigo_pesa_tutashinda.png" alt=""  width="200" height="100">
                   <ol>
                    <li>  piga *150*01#  </li>
-                  <li>  chagua #4 - Lipa kwa M-Pesa </li>
-                  <li>  chagua #4 - Weka namba ya kampuni %(ref_second)s </li>
+                  <li>  chagua #4 - Lipa bili </li>
+                  <li>  chagua #3 - Ingiza namba ya kampuni %(ref_second)s </li>
                   <li>  Weka Kiasi  </li>
                   <li>  Weka Namba ya siri  </li>
                   <li>  Bonyeza 1 kuthibitisha</li>
@@ -112,4 +112,4 @@ class ReceivedTransaction(models.Model):
     received_amount=fields.Float('Received Amount', required=True)
     transaction_currency=fields.Char('Currency', required=True)
     service_provider=fields.Char('Service Provider', required=True)
-    transaction_status=fields.Selection([('pending','pending'),('done','done'),('incomplete','incomplete')],required=True)
+    transaction_status=fields.Selection([('pending','pending'),('done','done'),('incomplete','incomplete'),('cancelled','cancelled')],required=True)
