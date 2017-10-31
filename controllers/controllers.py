@@ -3,10 +3,11 @@ from odoo.http import request
 import logging
 import pprint
 import werkzeug
+import odoo
 
 _logger = logging.getLogger(__name__)
 
-class OgoneController(http.Controller):
+class MpayController(http.Controller):
     _accept_url = '/payment/mpay/feedback'
 
     @http.route([
@@ -18,11 +19,23 @@ class OgoneController(http.Controller):
         request.env['payment.transaction'].sudo().form_feedback(post, 'transfer')
         return werkzeug.utils.redirect(post.pop('return_url', '/'))
 
-#####Just for Demostration #################################################
-    @http.route('/auth_usr', type='http', auth='public', website=True, )   #
-    def render_demo_page(self):                                            #
-        return http.request.render("Mpay.example__page", {})               #
-####Just for Demostration ##################################################
+    @http.route('/shop/confirmation', type='http', auth='public', website=True, )   #
+    def payment_confirmation(self, **post):
+        """ End of checkout process controller. Confirmation is basically seing
+        the status of a sale.order. State at this point :
+
+         - should not have any context / session info: clean them
+         - take a sale.order id, because we request a sale.order and are not
+           session dependant anymore
+        """
+
+        sale_order_id = request.session.get('sale_last_order_id')
+        if sale_order_id:
+            order = request.env['sale.order'].sudo().browse(sale_order_id)
+            providers=request.env['payment.service'].sudo().search([])
+            return request.render("Mpay.example__page", {'order': order, 'providers': providers})
+        else:
+            return request.redirect('/shop')             
 
     def extract_data(self,template,message):
        tokenized_message=message.split()
@@ -66,37 +79,49 @@ class OgoneController(http.Controller):
 
     @http.route('/get_transaction_sms', type='http', auth='public', website=True, methods=['POST'], csrf=False)
     def post_method(self, **sms):
-        #Here we have to extract important information from SMS sent and store to "received.transaction" model
-        if sms['secret'] !='ilomoyezy':
-            return "Error 404."
+          #Here we have to extract important information from SMS sent and store to "received.transaction" model
+          mpay_secret_key=request.env['payment.acquirer'].sudo().search([("provider","=","mpay")]).ensure_one().secrete_key
+          if sms['secret'] != mpay_secret_key:
+              return "Error 404."
 
-        received_sms=sms['message']
-        get_record=request.env['payment.service'].sudo().search([("service_provider","=","Vodacom")]);
-        if get_record.exists():
-           template=get_record.template_sms;
-        else:
-            template="$transaction_id Imethibitishwa umepokea $received_amount kutoka kwa $name Tarehe $date saa $time kwa kumbukumbu namba $reference"
+          received_sms=sms["message"]
+          provider_sending_name=sms["from"]
+          template=""
+          provider=request.env['payment.service'].sudo().search([("transaction_sender_name","=",provider_sending_name)])
+          if not provider.exists():
+              print('\033[1m'+'\033[91m'+"\nOooops!, Provider with the name '"+provider_sending_name+"' is not defined in your database!..\n"+'\033[0m')
+              return "Error 405"
+          else:
+              template=provider.ensure_one().template_sms
 
-        try :
-          transaction_sms=self.extract_data(template,received_sms)
-          data=request.env['received.transaction'].sudo().create({'reference': transaction_sms['reference'],'sender_name': transaction_sms['name'], 'sender_phone': transaction_sms['name'], 'transaction_id': transaction_sms['transaction_id'], 'transaction_status': 'pending', 'transaction_currency': transaction_sms['received_amount'][0:3], 'received_amount': float(transaction_sms['received_amount'][3:].replace(",", "")), 'service_provider': sms['from'] }  )
-          trs=request.env['payment.transaction'].sudo().search( [('reference','=',transaction_sms['reference'] )] )
-          print(len(transaction_sms['reference']));
-          print(received_sms)
-          if trs.exists(): ##########If the order exists
-              if trs.state!='done' and data.transaction_status!='done' and trs.amount <= data.received_amount: ##If paid amount is equal or greater than expected amount
-                 trs.write({'state':'done'})
+          try :
+            transaction_sms=self.extract_data(template,received_sms)
+          except Exception as e:
+             print(e)
+             print('\033[1m'+'\033[91m'+"\nOooops!, it seems like your SMS does not involve payment transaction!.\n"+'\033[0m')
+
+          data=request.env['received.transaction'].sudo().create({
+           'reference': transaction_sms['reference'],
+           'sender_name': transaction_sms['name'],
+           'sender_phone': transaction_sms['name'],
+           'transaction_id': transaction_sms['transaction_id'],
+           'transaction_status': 'pending',
+           'transaction_currency': transaction_sms['received_amount'][0:3],
+           'received_amount': float(transaction_sms['received_amount'][3:].replace(",", "")),
+           'service_provider': sms['from']
+           } )
+          order=request.env['payment.transaction'].sudo().search( [('reference','=',transaction_sms['reference'] )] )
+
+          if order.exists():
+              if order.state!='done' and data.transaction_status!='done' and  data.received_amount >= order.amount: ##If paid amount is equal or greater than expected amount
+                 order.write({'state':'done'})
                  data.write({'transaction_status': 'done'})
                  print('\033[1m'+'\033[92m'+"\nMpay payment for order # "+transaction_sms['reference']+ " confirmed\n"+'\033[0m')
-              elif  trs.state!='done' and data.transaction_status!='done' and trs.amount > data.received_amount: ##If paid amount is less than expected amount
+              elif  order.state!='done' and data.transaction_status!='done' and data.received_amount < order.amount: ##If paid amount is less than expected amount
                 data.write({'transaction_status': 'incomplete'})
                 print('\033[1m'+'\033[91m'+"\nIncomplete payment.\n"+'\033[0m')
               else :
                data.write({'transaction_status': 'cancelled'})
                print('\033[1m'+'\033[1m'+'\033[1m'+'\033[91m'+"\nOrder "+transaction_sms['reference']+ " has already been processed.\n"+'\033[0m')#Order with the same  order number exist
-          else:  ###########If the order doesn't exist
-            print('\033[1m'+'\033[91m'+"\nOrder "+transaction_sms['reference']+" does not exist.\n" +'\033[0m')
-
-        except Exception as e:
-            print(e)
-            print('\033[1m'+'\033[91m'+"\nOooop!, it seems like your SMS does not involve payment transaction!.\n"+'\033[0m')
+          else:
+             print('\033[1m'+'\033[91m'+"\nOrder "+transaction_sms['reference']+" does not exist.\n" +'\033[0m')

@@ -1,7 +1,6 @@
 <odoo>
 <data>
 
-
     <template id="mpay_acquirer_button">
               <form t-if="acquirer" t-att-action="tx_url" method="post" target="_self">
                   <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
@@ -63,7 +62,7 @@
             <input type="hidden" name="currency" t-att-value="currency" />
            <p style="color: red; margin-top: 5px;">  <t t-esc="error" /> </p>
             <button  class="btn btn-primary" type="submit">
-                    <span t-if="not submit_txt">Confirm <span class="fa fa-long-arrow-right"></span></span>
+                    <span t-if="not submit_txt">Sign in <span class="fa fa-long-arrow-right"></span></span>
                     <span t-if="submit_txt"><t t-esc="submit_txt"/></span>
             </button>
           </form>
@@ -75,18 +74,168 @@
   </template>
 
   <template id="example__page" name="Demo Page" page="True">
-    <t t-call="website.layout">
+    <t t-name="Mpay.example__page">
+            <t t-call="website.layout">
+                <t t-set="additional_title">Shop - Confirmed</t>
+                <div id="wrap">
+                    <div class="container oe_website_sale">
+                        <t t-call="website_sale.wizard_checkout">
+                            <t t-set="step" t-value="50"/>
+                        </t>
+                        <h1 class="mb32">Order <em t-field="order.name"/> Confirmed</h1>
+                        <div class="row">
+                            <div class="col-lg-8 col-sm-9">
+                                <div class="thanks_msg">
+                                    <h2>Thank you for your order.
+                                              <a class="btn btn-primary pull-right" href="/shop/print" target="_blank"><i class="fa fa-print"/> Print
+                                              </a></h2>
+                                    <div class="oe_website_sale_tx_status" t-att-data-order-id="order.id"/>
+                                </div>
+                                <div class="oe_cart">
+                                    <h3 class="mt32 text-left">
+                                        <strong>Order Details:</strong>
+                                    </h3>
+                                    <table class="table">
+                                        <thead>
+                                            <tr>
+                                                <th>Products</th>
+                                                <th>Quantity</th>
+                                                <th class="text-right" width="130">Unit Price</th>
+                                                <th class="text-right" width="130">Subtotal</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                          <tr t-foreach="order.order_line" t-as="line">
+                                              <td>
+                                                  <div>
+                                                      <a t-attf-href="/shop/product/#{ slug(line.product_id.product_tmpl_id) }">
+                                                          <strong t-esc="line.product_id.with_context(display_default_code=False).display_name"/>
+                                                      </a>
+                                                  </div>
+                                                  <div class="text-muted">
+                                                      <t t-foreach="line.name.splitlines()[1:]" t-as="name_line">
+                                                          <span><t t-esc="name_line"/></span><br/>
+                                                      </t>
+                                                  </div>
+                                              </td>
+                                              <td>
+                                                  <div id="quote_qty">
+                                                      <span t-field="line.product_uom_qty"/>
+                                                      <span t-field="line.product_uom"/>
+                                                  </div>
+                                              </td>
+                                              <td>
+                                                  <span class="text-right">
+                                                      <div t-field="line.price_unit" t-options="{&quot;widget&quot;: &quot;monetary&quot;, &quot;display_currency&quot;: order.pricelist_id.currency_id}"/>
+                                                  </span>
+                                              </td>
+                                              <td>
+                                                  <div class="text-right" t-field="line.price_subtotal" t-options="{&quot;widget&quot;: &quot;monetary&quot;, &quot;display_currency&quot;: order.pricelist_id.currency_id}"/>
+                                              </td>
+                                          </tr>
+                                        </tbody>
+                                        <tfooter>
+                                          <tr>
+                                              <td colspan="2"/>
+                                              <td class="text-right">Subtotal:</td>
+                                              <td class="text-right">
+                                                  <span t-field="order.amount_untaxed" style="white-space: nowrap;" t-options="{'widget': 'monetary','from_currency': order.pricelist_id.currency_id,'display_currency': website.currency_id}"/>
+                                              </td>
+                                          </tr>
+                                          <tr>
+                                              <td class="noborder" colspan="2"/>
+                                              <td class="text-right noborder">Taxes:</td>
+                                              <td class="text-right noborder">
+                                                   <span t-field="order.amount_tax" style="white-space: nowrap;" t-options="{'widget': 'monetary', 'from_currency': order.pricelist_id.currency_id, 'display_currency': website.currency_id}"/>
+                                              </td>
+                                          </tr>
+                                          <tr>
+                                              <td class="noborder" colspan="2"/>
+                                              <td class="text-right"><strong>Total:</strong></td>
+                                              <td class="text-right">
+                                                  <strong t-field="order.amount_total" t-options="{&quot;widget&quot;: &quot;monetary&quot;, &quot;display_currency&quot;: order.pricelist_id.currency_id}"/>
+                                              </td>
+                                          </tr>
+                                      </tfooter>
+                                    </table>
+                                    <div class="clearfix"/>
+                                    <div class="oe_structure"/>
+                                    <h3 class="text-left">
+                                        <strong>Payment information:</strong>
+                                    </h3>
+                                    <table class="table">
+                                        <tbody>
+                                            <tr>
+                                                <td colspan="2">
+                                                    <strong>Payment Method:</strong>
+                                                    <t t-esc="order.payment_acquirer_id.name"/>
+                                                </td>
+                                                <td class="text-right" width="100">
+                                                    <strong>Total:</strong>
+                                                </td>
+                                                <td class="text-right" width="100">
+                                                    <strong t-field="order.amount_total" t-options="{'widget': 'monetary', 'display_currency': order.pricelist_id.currency_id}"/>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                    <t t-call="website_sale.payment_confirmation_status"/>
 
-      <form class="psot" action="/web/login" method="post">
-        <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
-        <input type="hidden" name="db_name" value="ConnectorSessionHandler(Demostration, 1)"/>
-        <input type="text" name="logi" value=""/>
-        <input type="text" name="password" value=""/>
-        <button  class="btn btn-primary" type="submit">
-        </button>
-      </form>
+                                    <style media="screen">
+                                      .payment-steps{
+                                        display: none;
+                                      }
+                                    </style>
+                                    <script type="text/javascript">
+                                      function showSteps(element) {
+                                        id=element.className;
+                                        steps=document.getElementById(id);
+                                        if( steps.style.display=="none"){
+                                            steps.style.display="block";
+                                            element.style.backgroundColor="gray";
+                                         }
+                                         else{
+                                           steps.style.display="none";
+                                           element.style.backgroundColor="white";
+                                         }
+                                      }
 
-    </t>
+                                    </script>
+
+                                  <t t-if="order.payment_acquirer_id.name=='Mpay'" >
+                                    <div class="providers">
+                                      <form id="fm" action="">
+                                       <t t-foreach="providers" t-as="provider">
+                                         <div onclick="showSteps(this)" t-att-class="provider.service_provider" style="cursor: pointer; margin: 6px;">
+                                           <img t-att-src="provider.provider_icon" alt=""  width="120" height="50"/> <t t-esc="provider.service_provider"/>
+                                           <div t-att-id="provider.service_provider" style="display: none; background: gray; border-width: 5px;">
+                                             <div><t t-raw="provider.payment_procedures"/></div>
+                                             <p style="margin-left: 5px;">
+                                              <br/><strong>Note#</strong><br/>
+                                              Namba ya kampuni ya malipo ni <b><t t-esc="provider.service_number"/> </b> <br/>
+                                              Kumbukumbu namba ni <b><t t-esc="order.name"/></b>
+                                             </p>
+                                           </div>
+                                         </div>
+                                       </t>
+                                       </form>
+                                     </div>
+                                   </t>
+
+                                </div>
+                            </div>
+                            <div class="col-lg-3 col-lg-offset-1 col-sm-3 text-muted">
+                                <t t-call="website_sale.bill_to">
+                                    <t t-set="order" t-value="order"/>
+                                </t>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="oe_structure"/>
+                </div>
+            </t>
+        </t>
+
   </template>
 
 </data>

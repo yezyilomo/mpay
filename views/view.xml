@@ -1,8 +1,21 @@
 <odoo>
 <data>
 
-   <record id="acquirer" model="ir.actions.act_window">
-    <field name='name'>Mpay Acquirer</field>
+    <record id="mpay_form_view" model="ir.ui.view">
+        <field name="name">acquirer.form.mpay</field>
+        <field name="model">payment.acquirer</field>
+        <field name="inherit_id" ref="payment.acquirer_form"/>
+        <field name="arch" type="xml">
+            <xpath expr='//group[@name="acquirer"]' position='after'>
+                <group attrs="{'invisible': [('provider', '!=', 'mpay')]}">
+                    <field name="secrete_key" password="True"/>
+                </group>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="acquirer" model="ir.actions.act_window">
+    <field name='name'>All acquirer</field>
     <field name='res_model'>payment.acquirer</field>
     <field name='view_mode'>tree,form</field>
     <field name='view_type'>form</field>
@@ -29,7 +42,6 @@
                  <tree string="view">
                      <field name="service_provider"/>
                      <field name="service_number"/>
-                     <field name="template_sms"/>
                  </tree>
              </field>
     </record>
@@ -46,7 +58,7 @@
             <field name="model">received.transaction</field>
             <field name="arch" type="xml">
                 <tree string="vw">
-                   <field name="reference"/>
+                    <field name="reference"/>
                     <field name="sender_name"/>
                     <field name="sender_phone"/>
                     <field name="transaction_id"/>

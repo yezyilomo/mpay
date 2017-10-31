@@ -10,53 +10,21 @@ _logger = logging.getLogger(__name__)
 class MpayAcquirer(models.Model):
     _inherit = 'payment.acquirer'
     provider = fields.Selection(selection_add=[('mpay', 'Mpay')])
-
-    post_msg = fields.Html('Thanks Message', compute="funct")
+    secrete_key = fields.Char("Secrete key", required_if_provider="mpay")
+    pending_msg = fields.Html("Pending Message", compute="get_pending_msg")
 
     @api.depends()
-    def funct (self):
-     first=self.env['payment.service'].sudo().search([("service_provider","=","Vodacom")]);
-     if first.exists():
-         first=first.service_number
-     else:
-         first="1500"
-     second=self.env['payment.service'].sudo().search([("service_provider","=","Tigo")]);
-     if second.exists():
-         first=second.service_number
-     else:
-         second="1400"
-
-     self.post_msg=_('''<div>
-      <h3>Please use the following details for payment</h3>
-        <div class="mpay">
-        <span >  <img src="http://www.vodafone.com/content/dam/vodafone-images/M-Pesa/map/m-pesa-drc-tanz-les-moz.jpg" alt=""  width="200" height="100">
-                    <ol>
-                     <li>  piga *150*00#  </li>
-                    <li>  chagua #4 - Lipa kwa M-Pesa </li>
-                    <li>  chagua #4 - Weka namba ya kampuni %(ref_first)s </li>
-                    <li>  Weka namba ya kumbukumbu ya malipo</li>
-                    <li>  Weka Kiasi  </li>
-                    <li>  Weka Namba ya siri  </li>
-                    <li>  Bonyeza 1 kuthibitisha</li>
-                    </ol>
-        </span>
-        <span > <img src="http://www.ocode.or.tz/wp-content/uploads/2014/02/tigo_pesa_tutashinda.png" alt=""  width="200" height="100">
-                  <ol>
-                   <li>  piga *150*01#  </li>
-                  <li>  chagua #4 - Lipa bili </li>
-                  <li>  chagua #3 - Ingiza namba ya kampuni %(ref_second)s </li>
-                  <li>  Weka Kiasi  </li>
-                  <li>  Weka Namba ya siri  </li>
-                  <li>  Bonyeza 1 kuthibitisha</li>
-                  </ol>
-        </span>
-        </div>
-      <b>Please use the order name as reference number(kumbukumbu namba).</b>
-      </div>''')%{
-      'ref_first': first,
-      'ref_second': second
-      }
-
+    def get_pending_msg(self):
+        if self.provider=="mpay":
+            self.pending_msg="""
+            <span><font style="font-size: 18px;">Your online payment has been successfully processed.
+            But your order is not validated yet, Choose your mobile payment service provider and follow
+            instructions to complete payment.</font></span>
+            """
+        else:
+            self.pending_msg="""
+            <span><i>Pending,</i> Your online payment has been successfully processed. But your order is not validated yet.</span>
+            """
 
     def mpay_get_form_action_url(self):
         return '/payment/mpay/feedback'
@@ -99,8 +67,22 @@ class PaymentService(models.Model):
     _description='This store Service provider informations'
     service_provider=fields.Char('Service Provider', required=True)
     service_number=fields.Char('Service Number', required=True)
-    template_sms=fields.Text("Template SMS", required=True,default="$transaction_id Imethibitishwa umepokea $received_amount kutoka kwa $name Tarehe $date saa $time kwa kumbukumbu namba $reference")
-
+    transaction_sender_name = fields.Char("Sender Name")
+    payment_procedures=fields.Html("Payment Steps", required=True, default="""
+    <ol>
+     <li>  piga *150*00#  </li>
+     <li>  chagua #4 - Lipa kwa M-Pesa </li>
+     <li>  chagua #4 - Weka namba ya kampuni</li>
+     <li>  Weka namba ya kumbukumbu ya malipo</li>
+     <li>  Weka Kiasi  </li>
+     <li>  Weka Namba ya siri  </li>
+     <li>  Bonyeza 1 kuthibitisha</li>
+    </ol>
+    """)
+    provider_icon=fields.Char("Image URL", required=True)
+    template_sms=fields.Text("Template SMS", required=True,default="\
+$transaction_id Imethibitishwa umepokea $received_amount kutoka\
+ kwa $name Tarehe $date saa $time kwa kumbukumbu namba $reference")
 
 class ReceivedTransaction(models.Model):
     _name='received.transaction'
